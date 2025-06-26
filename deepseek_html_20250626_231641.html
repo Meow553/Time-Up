@@ -42,10 +42,10 @@
         
         .main-text {
             color: red;
-            font-size: 15vw;
+            font-size: 12vw;
             font-weight: bold;
             text-shadow: 0 0 15px #ff0000, 0 0 30px #ff0000;
-            margin-bottom: 5vh;
+            margin-bottom: 2vh;
             text-align: center;
         }
         
@@ -54,6 +54,15 @@
             font-size: 10vw;
             font-weight: bold;
             text-shadow: 0 0 10px #ffff00, 0 0 20px #ffff00;
+            margin-bottom: 2vh;
+        }
+        
+        .current-time {
+            color: cyan;
+            font-size: 6vw;
+            font-weight: bold;
+            text-shadow: 0 0 5px #00ffff, 0 0 10px #00ffff;
+            margin-bottom: 2vh;
         }
         
         .time-up {
@@ -73,14 +82,16 @@
     <div class="time-input">
         <label for="rest-time">Set Break Time: </label>
         <input type="time" id="rest-time" value="15:00">
-        <button onclick="setRestTime()">Set</button>
+        <button onclick="setRestTime()">set</button>
     </div>
     
     <div class="main-text" id="mainText">休息到15:00</div>
     <div class="countdown" id="countdown">00:00:00</div>
+    <div class="current-time" id="currentTime"></div>
     
     <audio id="alarmSound">
-        <source src="https://meow553.github.io/Time-Up/Break%20Time.mp3" type="audio/mpeg">
+        <source src="https://meow553.github.io/Time-Up/Break%20Time.mp3" type="audio/mp3">
+        您的瀏覽器不支援音頻元素。
     </audio>
 
     <script>
@@ -110,7 +121,7 @@
         }
         
         function triggerAlarm() {
-            // 播放鈴聲（最多1分鐘）
+            // 播放自訂鈴聲（最多1分鐘）
             alarmSound.play().catch(e => console.log("自動播放被阻止:", e));
             alarmTimeout = setTimeout(() => alarmSound.pause(), 60000);
             
@@ -124,6 +135,11 @@
             alarmSound.pause();
             alarmSound.currentTime = 0;
             clearTimeout(alarmTimeout);
+        }
+        
+        function updateCurrentTime() {
+            const now = new Date();
+            document.getElementById('currentTime').textContent = "現在時間: " + now.toLocaleTimeString();
         }
         
         function updateCountdown() {
@@ -143,8 +159,15 @@
                 `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
         }
         
+        // 初始化
+        updateCurrentTime();
         updateCountdown();
-        setInterval(updateCountdown, 1000);
+        
+        // 每秒更新時間和倒數
+        setInterval(() => {
+            updateCurrentTime();
+            updateCountdown();
+        }, 1000);
     </script>
 </body>
 </html>

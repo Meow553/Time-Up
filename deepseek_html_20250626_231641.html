@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>休息倒數計時器</title>
+    <style>
+        body {
+            background-color: black;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: 'Arial', sans-serif;
+        }
+        
+        .time-input {
+            margin-bottom: 20px;
+            color: white;
+            font-size: 24px;
+        }
+        
+        input {
+            font-size: 24px;
+            padding: 5px;
+            background-color: #333;
+            color: white;
+            border: 1px solid #666;
+        }
+        
+        button {
+            font-size: 24px;
+            padding: 5px 15px;
+            background-color: #444;
+            color: white;
+            border: 1px solid #666;
+            cursor: pointer;
+        }
+        
+        button:hover {
+            background-color: #555;
+        }
+        
+        .main-text {
+            color: red;
+            font-size: 15vw;
+            font-weight: bold;
+            text-shadow: 0 0 15px #ff0000, 0 0 30px #ff0000;
+            margin-bottom: 5vh;
+            text-align: center;
+        }
+        
+        .countdown {
+            color: yellow;
+            font-size: 10vw;
+            font-weight: bold;
+            text-shadow: 0 0 10px #ffff00, 0 0 20px #ffff00;
+            margin-bottom: 5vh;
+        }
+        
+        .current-time {
+            color: cyan;
+            font-size: 5vw;
+            font-weight: bold;
+            text-shadow: 0 0 5px #00ffff, 0 0 10px #00ffff;
+        }
+        
+        .alarm-active {
+            animation: alarmFlash 0.5s infinite alternate;
+        }
+        
+        @keyframes alarmFlash {
+            from { background-color: black; }
+            to { background-color: #220000; }
+        }
+    </style>
+</head>
+<body>
+    <div class="time-input">
+        <label for="rest-time">Set Break Time : </label>
+        <input type="time" id="rest-time" value="15:00">
+        <button onclick="setRestTime()">Set</button>
+    </div>
+    
+    <div class="main-text" id="mainText">休息到15:00</div>
+    <div class="countdown" id="countdown">00:00:00</div>
+    <div class="current-time" id="currentTime"></div>
+    
+    <audio id="alarmSound" loop>
+        <source src="https://meow553.github.io/Time-Up/Break%20Time.mp3" type="audio/mpeg">
+        您的瀏覽器不支援音頻元素。
+    </audio>
+
+    <script>
+        let targetTime = getDefaultTargetTime();
+        let alarmTimeout;
+        let isAlarming = false;
+        const alarmSound = document.getElementById('alarmSound');
+        
+        // 取得預設目標時間（今天15:00）
+        function getDefaultTargetTime() {
+            const now = new Date();
+            const target = new Date();
+            target.setHours(15, 0, 0, 0);
+            
+            if (now > target) {
+                target.setDate(target.getDate() + 1);
+            }
+            
+            return target;
+        }
+        
+        // 設定自訂休息時間
+        function setRestTime() {
+            const timeInput = document.getElementById('rest-time').value;
+            const [hours, minutes] = timeInput.split(':').map(Number);
+            
+            const now = new Date();
+            targetTime = new Date();
+            targetTime.setHours(hours, minutes, 0, 0);
+            
+            if (now > targetTime) {
+                targetTime.setDate(targetTime.getDate() + 1);
+            }
+            
+            document.getElementById('mainText').textContent = `休息到${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+            
+            // 如果正在響鈴，停止它
+            if (isAlarming) {
+                stopAlarm();
+            }
+        }
+        
+        // 停止響鈴
+        function stopAlarm() {
+            clearTimeout(alarmTimeout);
+            alarmSound.pause();
+            alarmSound.currentTime = 0;
+            document.body.classList.remove('alarm-active');
+            isAlarming = false;
+            
+            // 恢復正常倒數顯示
+            document.getElementById('countdown').style.color = "yellow";
+            document.getElementById('countdown').style.textShadow = "0 0 10px #ffff00, 0 0 20px #ffff00";
+        }
+        
+        // 觸發提醒
+        function triggerAlarm() {
+            isAlarming = true;
+            document.body.classList.add('alarm-active');
+            
+            // 播放鈴聲
+            alarmSound.play().catch(e => console.log("自動播放被阻止:", e));
+            
+            // 30秒後自動停止
+            alarmTimeout = setTimeout(stopAlarm, 30000);
+        }
+        
+        // 更新倒數計時和當前時間
+        function updateClocks() {
+            const now = new Date();
+            const diff = targetTime - now;
+            
+            // 更新當前時間
+            document.getElementById('currentTime').textContent = now.toLocaleTimeString();
+            
+            // 計算剩餘時間
+            if (diff <= 0) {
+                if (!isAlarming) {
+                    document.getElementById('countdown').textContent = "Time Up！ " + now.toLocaleTimeString();
+                    document.getElementById('countdown').style.color = "lime";
+                    document.getElementById('countdown').style.textShadow = "0 0 15px #00ff00, 0 0 30px #00ff00";
+                    triggerAlarm();
+                }
+                return;
+            }
+            
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+            
+            // 顯示倒數計時
+            document.getElementById('countdown').textContent = 
+                `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+        
+        // 每秒更新一次
+        updateClocks();
+        setInterval(updateClocks, 1000);
+    </script>
+</body>
+</html>

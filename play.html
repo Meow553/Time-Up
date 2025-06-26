@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>玩樂倒數計時器</title>
+    <title>玩樂時間倒數計時器</title>
     <style>
         body {
             background-color: black;
@@ -80,29 +80,36 @@
 </head>
 <body>
     <div class="time-input">
-        <label for="rest-time">Set play time: </label>
+        <label for="rest-time">Set Play Time: </label>
         <input type="time" id="rest-time" value="15:00">
         <button onclick="setRestTime()">set</button>
     </div>
     
-    <div class="main-text" id="mainText">玩樂時間到17:00</div>
+    <div class="main-text" id="mainText">玩樂時間到15:00</div>
     <div class="countdown" id="countdown">00:00:00</div>
     <div class="current-time" id="currentTime"></div>
     
     <audio id="alarmSound">
-        <source src="https://meow553.github.io/Time-Up/Break%20Time.mp3" type="audio/mp3">
+        <source src="https://meow553.github.io/Time-Up/上課鐘聲.mp3" type="audio/mp3">
         您的瀏覽器不支援音頻元素。
     </audio>
 
     <script>
         let targetTime = getDefaultTargetTime();
         let alarmTimeout;
+        let hasAlarmed = false;
+        let soundLoopTimeout;
         const alarmSound = document.getElementById('alarmSound');
+        
+        // 預先載入音頻以獲取持續時間
+        alarmSound.addEventListener('loadedmetadata', function() {
+            console.log("音頻持續時間:", alarmSound.duration, "秒");
+        });
         
         function getDefaultTargetTime() {
             const now = new Date();
             const target = new Date();
-            target.setHours(17, 0, 0, 0);
+            target.setHours(15, 0, 0, 0);
             if (now > target) target.setDate(target.getDate() + 1);
             return target;
         }
@@ -118,23 +125,55 @@
             
             document.getElementById('mainText').textContent = `玩樂時間到${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
             resetCountdownDisplay();
+            hasAlarmed = false;
+        }
+        
+        function playSoundForOneMinute() {
+            const startTime = Date.now();
+            const playLoop = () => {
+                const elapsed = (Date.now() - startTime) / 1000;
+                if (elapsed >= 60) {
+                    alarmSound.pause();
+                    alarmSound.currentTime = 0;
+                    return;
+                }
+                
+                // 如果音頻已結束但未達1分鐘，重新播放
+                if (alarmSound.paused || alarmSound.ended) {
+                    alarmSound.currentTime = 0;
+                    alarmSound.play().catch(e => console.log("音頻播放錯誤:", e));
+                }
+                
+                soundLoopTimeout = setTimeout(playLoop, 1000);
+            };
+            
+            alarmSound.play().catch(e => console.log("初始播放錯誤:", e));
+            playLoop();
         }
         
         function triggerAlarm() {
-            // 播放自訂鈴聲（最多1分鐘）
-            alarmSound.play().catch(e => console.log("自動播放被阻止:", e));
-            alarmTimeout = setTimeout(() => alarmSound.pause(), 60000);
+            if (hasAlarmed) return;
             
-            // 顯示時間到
             document.getElementById('countdown').textContent = "時間到";
             document.getElementById('countdown').className = "countdown time-up";
+            
+            playSoundForOneMinute();
+            hasAlarmed = true;
+            
+            // 確保1分鐘後完全停止
+            alarmTimeout = setTimeout(() => {
+                clearTimeout(soundLoopTimeout);
+                alarmSound.pause();
+                alarmSound.currentTime = 0;
+            }, 60000);
         }
         
         function resetCountdownDisplay() {
             document.getElementById('countdown').className = "countdown";
+            clearTimeout(alarmTimeout);
+            clearTimeout(soundLoopTimeout);
             alarmSound.pause();
             alarmSound.currentTime = 0;
-            clearTimeout(alarmTimeout);
         }
         
         function updateCurrentTime() {
@@ -147,7 +186,7 @@
             const diff = targetTime - now;
             
             if (diff <= 0) {
-                if (alarmSound.paused) triggerAlarm();
+                triggerAlarm();
                 return;
             }
             

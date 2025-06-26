@@ -102,7 +102,7 @@
         function getDefaultTargetTime() {
             const now = new Date();
             const target = new Date();
-            target.setHours(15, 0, 0, 0);
+            target.setHours(17, 0, 0, 0);
             if (now > target) target.setDate(target.getDate() + 1);
             return target;
         }
@@ -116,7 +116,7 @@
             targetTime.setHours(hours, minutes, 0, 0);
             if (now > targetTime) targetTime.setDate(targetTime.getDate() + 1);
             
-            document.getElementById('mainText').textContent = `休息到${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+            document.getElementById('mainText').textContent = `玩樂時間到${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
             resetCountdownDisplay();
         }
         

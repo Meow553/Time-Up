@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>睡眠倒數計時器</title>
+    <style>
+        body {
+            background-color: black;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: 'Arial', sans-serif;
+        }
+        
+        .time-input {
+            margin-bottom: 20px;
+            color: white;
+            font-size: 24px;
+        }
+        
+        input {
+            font-size: 24px;
+            padding: 5px;
+            background-color: #333;
+            color: white;
+            border: 1px solid #666;
+        }
+        
+        button {
+            font-size: 24px;
+            padding: 5px 15px;
+            background-color: #444;
+            color: white;
+            border: 1px solid #666;
+            cursor: pointer;
+        }
+        
+        .main-text {
+            color: red;
+            font-size: 12vw;
+            font-weight: bold;
+            text-shadow: 0 0 15px #ff0000, 0 0 30px #ff0000;
+            margin-bottom: 2vh;
+            text-align: center;
+        }
+        
+        .countdown {
+            color: yellow;
+            font-size: 10vw;
+            font-weight: bold;
+            text-shadow: 0 0 10px #ffff00, 0 0 20px #ffff00;
+            margin-bottom: 2vh;
+        }
+        
+        .current-time {
+            color: cyan;
+            font-size: 6vw;
+            font-weight: bold;
+            text-shadow: 0 0 5px #00ffff, 0 0 10px #00ffff;
+            margin-bottom: 2vh;
+        }
+        
+        .time-up {
+            color: lime;
+            text-shadow: 0 0 15px #00ff00, 0 0 30px #00ff00;
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="time-input">
+        <label for="rest-time">Set Sleep Time: </label>
+        <input type="time" id="rest-time" value="14:00">
+        <button onclick="setRestTime()">set</button>
+    </div>
+    
+    <div class="main-text" id="mainText">睡覺時間到14:00</div>
+    <div class="countdown" id="countdown">00:00:00</div>
+    <div class="current-time" id="currentTime"></div>
+    
+    <audio id="alarmSound">
+        <source src="https://meow553.github.io/Time-Up/快乐起床歌.mp3" type="audio/mp3">
+        您的瀏覽器不支援音頻元素。
+    </audio>
+
+    <script>
+        let targetTime = getDefaultTargetTime();
+        let alarmTimeout;
+        let hasAlarmed = false;
+        let soundLoopTimeout;
+        const alarmSound = document.getElementById('alarmSound');
+        
+        // 預先載入音頻以獲取持續時間
+        alarmSound.addEventListener('loadedmetadata', function() {
+            console.log("音頻持續時間:", alarmSound.duration, "秒");
+        });
+        
+        function getDefaultTargetTime() {
+            const now = new Date();
+            const target = new Date();
+            target.setHours(15, 0, 0, 0);
+            if (now > target) target.setDate(target.getDate() + 1);
+            return target;
+        }
+        
+        function setRestTime() {
+            const timeInput = document.getElementById('rest-time').value;
+            const [hours, minutes] = timeInput.split(':').map(Number);
+            
+            const now = new Date();
+            targetTime = new Date();
+            targetTime.setHours(hours, minutes, 0, 0);
+            if (now > targetTime) targetTime.setDate(targetTime.getDate() + 1);
+            
+            document.getElementById('mainText').textContent = `睡眠時間到${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+            resetCountdownDisplay();
+            hasAlarmed = false;
+        }
+        
+        function playSoundForOneMinute() {
+            const startTime = Date.now();
+            const playLoop = () => {
+                const elapsed = (Date.now() - startTime) / 1000;
+                if (elapsed >= 60) {
+                    alarmSound.pause();
+                    alarmSound.currentTime = 0;
+                    return;
+                }
+                
+                // 如果音頻已結束但未達1分鐘，重新播放
+                if (alarmSound.paused || alarmSound.ended) {
+                    alarmSound.currentTime = 0;
+                    alarmSound.play().catch(e => console.log("音頻播放錯誤:", e));
+                }
+                
+                soundLoopTimeout = setTimeout(playLoop, 1000);
+            };
+            
+            alarmSound.play().catch(e => console.log("初始播放錯誤:", e));
+            playLoop();
+        }
+        
+        function triggerAlarm() {
+            if (hasAlarmed) return;
+            
+            document.getElementById('countdown').textContent = "時間到";
+            document.getElementById('countdown').className = "countdown time-up";
+            
+            playSoundForOneMinute();
+            hasAlarmed = true;
+            
+            // 確保1分鐘後完全停止
+            alarmTimeout = setTimeout(() => {
+                clearTimeout(soundLoopTimeout);
+                alarmSound.pause();
+                alarmSound.currentTime = 0;
+            }, 60000);
+        }
+        
+        function resetCountdownDisplay() {
+            document.getElementById('countdown').className = "countdown";
+            clearTimeout(alarmTimeout);
+            clearTimeout(soundLoopTimeout);
+            alarmSound.pause();
+            alarmSound.currentTime = 0;
+        }
+        
+        function updateCurrentTime() {
+            const now = new Date();
+            document.getElementById('currentTime').textContent = "現在時間: " + now.toLocaleTimeString();
+        }
+        
+        function updateCountdown() {
+            const now = new Date();
+            const diff = targetTime - now;
+            
+            if (diff <= 0) {
+                triggerAlarm();
+                return;
+            }
+            
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+            
+            document.getElementById('countdown').textContent = 
+                `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+        
+        // 初始化
+        updateCurrentTime();
+        updateCountdown();
+        
+        // 每秒更新時間和倒數
+        setInterval(() => {
+            updateCurrentTime();
+            updateCountdown();
+        }, 1000);
+    </script>
+</body>
+</html>

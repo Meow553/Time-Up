@@ -109,7 +109,7 @@
         function getDefaultTargetTime() {
             const now = new Date();
             const target = new Date();
-            target.setHours(15, 0, 0, 0);
+            target.setHours(14, 0, 0, 0);
             if (now > target) target.setDate(target.getDate() + 1);
             return target;
         }

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>LED當前時刻顯示</title>
+    <style>
+        body {
+            background-color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+        
+        .led-clock {
+            font-size: 80px;
+            font-weight: bold;
+            color: #FF0000;
+            text-shadow: 0 0 10px #FF0000, 0 0 20px #FF0000;
+            letter-spacing: 5px;
+            background-color: #220000;
+            padding: 20px 40px;
+            border-radius: 10px;
+            border: 2px solid #FF0000;
+        }
+        
+        .colon {
+            animation: blink 1s step-end infinite;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+    </style>
+</head>
+<body>
+    <div class="led-clock" id="clock">
+        <span id="hours">00</span>:<span id="minutes" class="colon">00</span>:<span id="seconds">00</span>
+    </div>
+
+    <script>
+        function updateClock() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            
+            document.getElementById('hours').textContent = hours;
+            document.getElementById('minutes').textContent = minutes;
+            document.getElementById('seconds').textContent = seconds;
+        }
+        
+        // 立即更新一次時鐘
+        updateClock();
+        
+        // 每秒更新一次
+        setInterval(updateClock, 1000);
+    </script>
+</body>
+</html>

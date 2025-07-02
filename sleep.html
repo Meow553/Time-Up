@@ -98,13 +98,7 @@
         let targetTime = getDefaultTargetTime();
         let alarmTimeout;
         let hasAlarmed = false;
-        let soundLoopTimeout;
         const alarmSound = document.getElementById('alarmSound');
-        
-        // 預先載入音頻以獲取持續時間
-        alarmSound.addEventListener('loadedmetadata', function() {
-            console.log("音頻持續時間:", alarmSound.duration, "秒");
-        });
         
         function getDefaultTargetTime() {
             const now = new Date();
@@ -128,50 +122,22 @@
             hasAlarmed = false;
         }
         
-        function playSoundForOneMinute() {
-            const startTime = Date.now();
-            const playLoop = () => {
-                const elapsed = (Date.now() - startTime) / 1000;
-                if (elapsed >= 60) {
-                    alarmSound.pause();
-                    alarmSound.currentTime = 0;
-                    return;
-                }
-                
-                // 如果音頻已結束但未達1分鐘，重新播放
-                if (alarmSound.paused || alarmSound.ended) {
-                    alarmSound.currentTime = 0;
-                    alarmSound.play().catch(e => console.log("音頻播放錯誤:", e));
-                }
-                
-                soundLoopTimeout = setTimeout(playLoop, 1000);
-            };
-            
-            alarmSound.play().catch(e => console.log("初始播放錯誤:", e));
-            playLoop();
-        }
-        
         function triggerAlarm() {
             if (hasAlarmed) return;
             
             document.getElementById('countdown').textContent = "時間到";
             document.getElementById('countdown').className = "countdown time-up";
             
-            playSoundForOneMinute();
-            hasAlarmed = true;
+            // 只播放一次音頻
+            alarmSound.currentTime = 0;
+            alarmSound.play().catch(e => console.log("音頻播放錯誤:", e));
             
-            // 確保1分鐘後完全停止
-            alarmTimeout = setTimeout(() => {
-                clearTimeout(soundLoopTimeout);
-                alarmSound.pause();
-                alarmSound.currentTime = 0;
-            }, 60000);
+            hasAlarmed = true;
         }
         
         function resetCountdownDisplay() {
             document.getElementById('countdown').className = "countdown";
             clearTimeout(alarmTimeout);
-            clearTimeout(soundLoopTimeout);
             alarmSound.pause();
             alarmSound.currentTime = 0;
         }

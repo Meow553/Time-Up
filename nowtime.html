@@ -15,30 +15,23 @@
         }
         
         .led-clock {
-            font-size: 80px;
+            font-size: 120px;  /* 增大字體大小 */
             font-weight: bold;
             color: #FF0000;
             text-shadow: 0 0 10px #FF0000, 0 0 20px #FF0000;
-            letter-spacing: 5px;
+            letter-spacing: 8px;  /* 增加字母間距 */
             background-color: #220000;
-            padding: 20px 40px;
-            border-radius: 10px;
-            border: 2px solid #FF0000;
+            padding: 30px 50px;  /* 增加內邊距 */
+            border-radius: 15px;
+            border: 3px solid #FF0000;
         }
         
-        .colon {
-            animation: blink 1s step-end infinite;
-        }
-        
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
-        }
+        /* 移除閃爍動畫 */
     </style>
 </head>
 <body>
     <div class="led-clock" id="clock">
-        <span id="hours">00</span>:<span id="minutes" class="colon">00</span>:<span id="seconds">00</span>
+        <span id="hours">00</span>:<span id="minutes">00</span>:<span id="seconds">00</span>
     </div>
 
     <script>

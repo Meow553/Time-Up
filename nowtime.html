@@ -39,7 +39,7 @@
 <body>
     <div class="date-display" id="date"></div>
     <div class="led-clock" id="clock">
-        <span id="hours">00</span>:<span id="minutes">00</span>:<span id="secound">00</span>
+        <span id="hours">00</span>:<span id="minutes">00</span>
     </div>
 
     <script>
@@ -47,11 +47,9 @@
             const now = new Date();
             const hours = String(now.getHours()).padStart(2, '0');
             const minutes = String(now.getMinutes()).padStart(2, '0');
-            const seconds = String(now.getSeconds()).padStart(2, '0');
             
             document.getElementById('hours').textContent = hours;
             document.getElementById('minutes').textContent = minutes;
-            document.getElementById('seconds').textContent = seconds;
             
             // 更新日期顯示（僅年月日）
             const year = now.getFullYear();
@@ -59,14 +57,14 @@
             const day = String(now.getDate()).padStart(2, '0');
             
             document.getElementById('date').textContent = 
-                `${year}/${month}/${day}`;
+                `${year}年${month}月${day}日`;
         }
         
         // 立即更新一次時鐘和日期
         updateClock();
         
-        // 每秒更新一次
-        setInterval(updateClock, 1000);
+        // 每分鐘更新一次
+        setInterval(updateClock, 60000);
     </script>
 </body>
 </html>
